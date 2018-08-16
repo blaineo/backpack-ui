@@ -277,10 +277,12 @@ class Typeahead extends Component {
       this.onTextEntryUpdated();
     });
 
-    if (this.props.forceSelection &&
-        (this.state.searchResults.indexOf(this.state.entryValue) === -1) &&
-        this.state.selectionIndex === null) {
-      this.setState({ entryValue: this.props.initialValue });
+    const thereAreSearchResults = this.state.searchResults.length > 0;
+    const noSelectionYet = this.state.selectionIndex === null;
+
+    if (this.props.forceSelection && noSelectionYet && thereAreSearchResults) {
+      // Force selection of the first search result.
+      this.onOptionSelected(event, this.state.searchResults[0], false);
     }
 
     if (this.props.onBlur) {
@@ -290,8 +292,10 @@ class Typeahead extends Component {
     return null;
   }
 
-  onOptionSelected(event, option) {
-    this.inputElement.focus();
+  onOptionSelected(event, option, manipulateFocus = true) {
+    if (manipulateFocus) {
+      this.inputElement.focus();
+    }
 
     const displayOption = Accessor.generateOptionToStringFor(
       this.props.inputDisplayOption || this.props.displayOption,
@@ -316,7 +320,9 @@ class Typeahead extends Component {
       showResults: false,
     });
 
-    this.inputElement.blur();
+    if (manipulateFocus) {
+      this.inputElement.blur();
+    }
 
     if (this.props.validate) {
       this.props.validate(optionString, this.state.searchResults);
